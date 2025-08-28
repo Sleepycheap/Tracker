@@ -1,0 +1,30 @@
+{
+  "name": "tracker",
+  "version": "1.0.0",
+  "description": "Tracker CLI App Project for Roadmap.SH",
+  "main": "bin/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sleepycheap/Tracker.git"
+  },
+  "author": "Anthony Vauthier",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sleepycheap/Tracker/issues"
+  },
+  "homepage": "https://github.com/sleepycheap/Tracker#readme",
+  "bin": {
+    "translator-cli": "./bin/app.js"
+  },
+  "dependencies": {
+    "@vitalets/google-translate-api": "^9.2.1",
+    "chalk": "^5.6.0",
+    "commander": "^14.0.0",
+    "figlet": "^1.8.2",
+    "inquirer": "^12.9.4"
+  },
+  "type": "module"
+}
