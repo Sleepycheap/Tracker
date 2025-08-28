@@ -68,7 +68,7 @@ program
             : "The name must be at least 3 characters long.",
       },
     ]);
-    appendFile("tasks.json", answers.name, (err) => {
+    appendFile("tasks.json", answers.name + "\r\n", (err) => {
       if (err) throw err;
       console.log("The data was added to the file");
     });
