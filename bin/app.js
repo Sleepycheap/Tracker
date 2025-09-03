@@ -8,6 +8,7 @@ import chalk from "chalk";
 import { modifierNames } from "chalk";
 import { readFile, writeFile, appendFile } from "fs";
 import axios from "axios";
+import "dotenv/config";
 const log = console.log();
 const program = new Command();
 function showError(message) {
@@ -16,6 +17,7 @@ function showError(message) {
 }
 const validTypes = ["default", "special", "custom"];
 const path = "./tasks.json";
+
 // figlet("Tracker CLI", function (err, data) {
 //   console.log(data);
 // });
@@ -37,7 +39,7 @@ const path = "./tasks.json";
 // });
 
 const headers = {
-  Authorization: "Bearer nj92cdn7neshd4dx2jvmwzmr",
+  Authorization: `Bearer ${process.env.EGNYTE_TOKEN}`,
   "Content-Type": "application/json",
 };
 
@@ -64,8 +66,8 @@ program
   .command("list")
   .description("list all items")
   .option("-a, --all", "list all items, including hidden oners")
-  .action((options) => {
-    log("Listing Items...");
+  .action(async (options) => {
+    console.log("Listing Items...");
     if (options.all) {
       console.log("Including Hidden items");
     }
