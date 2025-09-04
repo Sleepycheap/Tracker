@@ -1,7 +1,8 @@
 #! /usr/bin/env_node
 
 import inquirer from "inquirer";
-import { select, Separator } from "@inquirer/prompts";
+//import { prompt } from "inquirer";
+import { select, Separator, input, confirm, number } from "@inquirer/prompts";
 import figlet from "figlet";
 import { Command } from "commander";
 import chalk from "chalk";
@@ -9,6 +10,7 @@ import { modifierNames } from "chalk";
 import { readFile, writeFile, appendFile } from "fs";
 import axios from "axios";
 import "dotenv/config";
+import { json } from "stream/consumers";
 const log = console.log();
 const program = new Command();
 function showError(message) {
@@ -42,6 +44,9 @@ const headers = {
   Authorization: `Bearer ${process.env.EGNYTE_TOKEN}`,
   "Content-Type": "application/json",
 };
+
+const fsUrl = "https://splashtacular.egnyte.com/pubapi/v1/fs/Shared/";
+const permUrl = "https://splashtacular.egnyte.com/pubapi/v2/perms/Shared/";
 
 // const params = JSON.stringify({
 //   action: "add_folder",
@@ -77,55 +82,122 @@ program
   .command("create")
   .description("Create a new task")
   .option("-t, --type <type>", "specify the item type", "default")
-  .action(async () => {
-    const answers = await inquirer.prompt([
-      {
-        type: "input",
-        name: "name",
-        message: "Enter the folder name:",
-        folderType: await select({
-          message: "Select a folder type",
-          choices: [
-            {
-              name: "Project",
-              value: "Project",
-              description: "Project Folder",
-            },
-            {
-              name: "Restoration & Maintenance",
-              value: "Restoration & Maintenance",
-              description: "R&M Folder",
-            },
-            {
-              name: "Preliminary",
-              value: "Preliminary",
-              description: "Preliminary Folder",
-            },
-          ],
-        }),
-      },
-    ]);
-    // appendFile("tasks.json", answers.name + "\r\n", (err) => {
-    //   if (err) throw err;
-    //   console.log("The data was added to the file");
-    // });
-    console.log(answers.name);
-    try {
-      const res = await fetch(
-        `https://splashtacular.egnyte.com/pubapi/v1/fs/Shared/ProjectsTest/${answers.name}`,
+  .action(
+    async () => {
+      const answers = await inquirer.prompt([
         {
-          method: "POST",
-          headers: headers,
-          body: payLoad,
-        }
-      );
+          type: "input",
+          name: "name",
+          message: "Enter the folder name:",
+          folderType: await select({
+            message: "Select a folder type",
+            choices: [
+              {
+                name: "Project",
+                value: "Project",
+                description: "Project Folder",
+              },
+              {
+                name: "Restoration & Maintenance",
+                value: "Restoration & Maintenance",
+                description: "R&M Folder",
+              },
+              {
+                name: "Preliminary",
+                value: "Preliminary",
+                description: "Preliminary Folder",
+              },
+            ],
+          }),
+        },
+      ]);
+      // appendFile("tasks.json", answers.name + "\r\n", (err) => {
+      //   if (err) throw err;
+      //   console.log("The data was added to the file");
+      // });
+      console.log(answers.choices);
+      // try {
+      //   const res = await fetch(
+      //     `https://splashtacular.egnyte.com/pubapi/v1/fs/Shared/ProjectsTest/${answers.name}`,
+      //     {
+      //       method: "POST",
+      //       headers: headers,
+      //       body: payLoad,
+      //     }
+      //   );
       console.log(
         chalk.green.bold.bgWhite(`Successfully created item: ${answers.name}`)
       );
-    } catch (err) {
+      // } catch (err) {
+      //   console.log(
+      //     chalk.red.italic.bgYellow(`Can't create folder ${answers.name}! ${err}`)
+      //   );
+    }
+    // }
+  );
+
+program.command("test2").action(async () => {
+  const testFolder = await select({
+    message: "Please select the folder type",
+    choices: [
+      {
+        name: "Projects",
+        value: "Projects",
+      },
+      {
+        name: "Restoration & Maintenance",
+        value: "Restoration & Maintenance",
+      },
+      {
+        name: "Preliminary",
+        value: "Preliminary",
+      },
+    ],
+  });
+  const data = testFolder;
+  console.log(data.response);
+});
+
+program
+  .command("permissions")
+  .description("Manages permissions to Egnyte folders")
+  .action(async () => {
+    const folder = await select({
+      message: "Please select the folder type",
+      choices: [
+        {
+          name: "Projects",
+          value: "Projects",
+        },
+        {
+          name: "Restoration & Maintenance",
+          value: "Restoration & Maintenance",
+        },
+        {
+          name: "Preliminary",
+          value: "Preliminary",
+        },
+      ],
+    });
+    const projectNum = await number({
+      message: "Please enter the project number",
+    });
+    const folderList = await axios.get(fsUrl + folder, { headers });
+    const data = folderList.data;
+    const folders = data.folders.map((item) => item.name);
+    const project = folders.find((f) => f.includes(projectNum));
+    //console.log(chalk.redBright(project));
+    const confirmation = await confirm({
+      message: `Is ${project} the correct folder?`,
+    });
+    if (confirmation) {
+      const perms = await axios.get(permUrl + folder + "/" + project, {
+        headers,
+      });
       console.log(
-        chalk.red.italic.bgYellow(`Can't create folder ${answers.name}! ${err}`)
+        chalk.green.bgWhite(`You have been given access to ${project}`)
       );
+      console.log(perms.data);
     }
   });
 
@@ -134,9 +206,10 @@ program
   .description("Testing calling API from CLI")
   .action(async () => {
     const data = await axios.get(
-      "https://fcs-redirect-d1e8704680c4.herokuapp.com/"
+      "https://splashtacular.egnyte.com/pubapi/v2/perms/Shared/Projects/North Platte, NE - Cody Park Pool - 10825",
+      { headers }
     );
-    console.log(data.status);
+    console.log(data.data);
   });
 
 program.parse();
